@@ -1,33 +1,33 @@
-interface Monitor {
-    url: string;
-    expectedStatus: number;
-    timeoutMs: number
-}
+import { openIncident, resolveOpenIncident } from "./repository";
 
-interface Outputs {
-    status: "up" | "down" | "timeout" | "error",
-    httpStatusCode: number | null,
-    latencyMs: number,
-    errorMessage: string | null
-}
+export const FAILURE_THRESHOLD = Number.parseInt(
+    process.env.FAILURE_THRESHOLD || "3",
+    10,
+);
 
-export default async function checkMonitor({ url, expectedStatus, timeoutMs = 10000 }: Monitor): Outputs {
-    const startTime = Date.now();
-    const controller = new AbortController();
-    const signal = controller.signal
+export async function handleIncidentState(
+    monitorId: string,
+    isSuccess: boolean,
+    reason: string | null,
+    previousFailures: number,
+): Promise<void> {
+    if (!isSuccess) {
+        const newFailures = previousFailures + 1;
 
-    setTimeout(() => {
-        controller.abort();
-    }, timeoutMs);
-
-    try {
-        const response = await fetch(url, {
-            signal
-        })
-
-        if (response.status === expectedStatus) {
+        if (
+            previousFailures < FAILURE_THRESHOLD &&
+            newFailures >= FAILURE_THRESHOLD
+        ) {
+            const failureReason =
+                reason ??
+                "Monitor check failed without a specific reason provided.";
+            await openIncident(monitorId, failureReason);
         }
-    } catch (e) {
-
+        return;
+    } else {
+        if (previousFailures >= FAILURE_THRESHOLD) {
+            await resolveOpenIncident(monitorId);
+        }
+        return;
     }
 }
