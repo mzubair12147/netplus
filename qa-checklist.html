@@ -1,0 +1,1654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NetPulse — QA Review Document</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+  :root {
+    --bg: #0a0b0f;
+    --surface: #111218;
+    --elevated: #1a1c26;
+    --border: #1e2035;
+    --accent: #6366f1;
+    --accent-light: rgba(99,102,241,0.12);
+    --green: #22c55e;
+    --green-bg: rgba(34,197,94,0.1);
+    --red: #ef4444;
+    --red-bg: rgba(239,68,68,0.1);
+    --yellow: #eab308;
+    --yellow-bg: rgba(234,179,8,0.1);
+    --blue: #3b82f6;
+    --blue-bg: rgba(59,130,246,0.1);
+    --text: #f0f1f6;
+    --text-2: #8b8fa8;
+    --text-3: #4a4e6b;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { color-scheme: dark; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 80px;
+  }
+  /* ── HEADER ── */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 28px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+  .header-left h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+  .header-left h1 span { color: var(--accent); }
+  .header-left p { color: var(--text-2); font-size: 0.8rem; margin-top: 2px; }
+  .header-right { display: flex; gap: 10px; align-items: center; }
+  /* ── PROGRESS BAR ── */
+  .progress-wrap {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 40px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .progress-track {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--green));
+    border-radius: 99px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+  .progress-label { font-size: 0.8rem; color: var(--text-2); white-space: nowrap; min-width: 80px; text-align: right; }
+  .score-badge {
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: var(--accent-light);
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  /* ── MAIN ── */
+  .main { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+  /* ── SECTION ── */
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .section-header {
+    padding: 16px 20px;
+    background: var(--elevated);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-header:hover { background: #1e2030; }
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 0.9375rem;
+  }
+  .section-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .section-meta { display: flex; align-items: center; gap: 10px; }
+  .section-count { font-size: 0.75rem; color: var(--text-3); }
+  .section-toggle { color: var(--text-3); font-size: 12px; transition: transform 0.2s; }
+  .section.collapsed .section-toggle { transform: rotate(-90deg); }
+  .section-body { padding: 0; }
+  .section.collapsed .section-body { display: none; }
+  /* ── CHECK ITEMS ── */
+  .check-item {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  .check-item:last-child { border-bottom: none; }
+  .check-item:hover { background: rgba(255,255,255,0.02); }
+  .check-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .check-label {
+    flex: 1;
+    min-width: 0;
+  }
+  .check-label strong {
+    display: block;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+  .check-label span {
+    font-size: 0.8rem;
+    color: var(--text-3);
+  }
+  /* Status selector */
+  .status-selector {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .status-btn {
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-2);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+  .status-btn:hover { background: var(--elevated); }
+  .status-btn.pass { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+  .status-btn.fail { background: var(--red-bg); border-color: var(--red); color: var(--red); }
+  .status-btn.skip { background: var(--yellow-bg); border-color: var(--yellow); color: var(--yellow); }
+  /* Notes & improvements */
+  .check-notes {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .note-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .note-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .note-input {
+    background: var(--elevated);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.8rem;
+    padding: 7px 10px;
+    resize: vertical;
+    min-height: 56px;
+    transition: border-color 0.15s;
+    outline: none;
+    width: 100%;
+  }
+  .note-input:focus { border-color: var(--accent); }
+  .note-input::placeholder { color: var(--text-3); }
+  .note-input.gap-field:focus { border-color: var(--red); }
+  .note-input.improvement-field:focus { border-color: var(--blue); }
+  /* ── SUMMARY SECTION ── */
+  .summary-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .summary-title { font-size: 0.875rem; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 16px; }
+  .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .summary-stat {
+    background: var(--elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+  }
+  .summary-stat .val { font-size: 2rem; font-weight: 800; letter-spacing: -0.04em; }
+  .summary-stat .lbl { font-size: 0.72rem; color: var(--text-3); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .val-pass { color: var(--green); }
+  .val-fail { color: var(--red); }
+  .val-skip { color: var(--yellow); }
+  .val-pct { color: var(--accent); }
+  /* ── GENERAL NOTES ── */
+  .general-notes {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .general-notes textarea {
+    width: 100%;
+    background: var(--elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.875rem;
+    padding: 12px;
+    resize: vertical;
+    min-height: 100px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .general-notes textarea:focus { border-color: var(--accent); }
+  .general-notes textarea::placeholder { color: var(--text-3); }
+  .general-notes label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    border-radius: 7px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    font-family: inherit;
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-primary:hover { filter: brightness(1.1); box-shadow: 0 0 16px rgba(99,102,241,0.3); }
+  .btn-ghost { background: transparent; color: var(--text-2); border-color: var(--border); }
+  .btn-ghost:hover { background: var(--elevated); color: var(--text); }
+  .btn-green { background: var(--green-bg); color: var(--green); border-color: var(--green); }
+  .btn-green:hover { filter: brightness(1.15); }
+  /* ── PRIORITY BADGE ── */
+  .priority {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    flex-shrink: 0;
+  }
+  .p-high { background: var(--red-bg); color: var(--red); }
+  .p-med { background: var(--yellow-bg); color: var(--yellow); }
+  .p-low { background: var(--blue-bg); color: var(--blue); }
+  /* ── PRINT / PDF ── */
+  @media print {
+    body { background: #fff; color: #000; font-size: 12px; }
+    .header { position: static; background: #fff; border-bottom: 2px solid #000; }
+    .header-right, .progress-wrap { display: none; }
+    .section { border: 1px solid #ccc; page-break-inside: avoid; }
+    .section-header { background: #f5f5f5; }
+    .check-item { border-bottom: 1px solid #eee; }
+    .note-input { border: 1px solid #ccc; background: #fafafa; color: #000; }
+    .status-btn { display: none; }
+    .status-display { display: inline; }
+    textarea { color: #000; background: #fafafa; border: 1px solid #ccc; }
+    .summary-stat { border: 1px solid #ccc; background: #f9f9f9; }
+    .summary-stat .val { color: #000; }
+    .no-print { display: none !important; }
+  }
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 18px;
+    font-size: 0.875rem;
+    color: var(--text);
+    z-index: 999;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all 0.25s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  /* ── DIVIDER ── */
+  hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+  .section-complete-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: none;
+  }
+</style>
+</head>
+<body>
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <h1>Net<span>Pulse</span> — QA Review</h1>
+    <p>Fill in each check item, note gaps, and list improvements. Export when done.</p>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-ghost no-print" onclick="resetAll()">↺ Reset</button>
+    <button class="btn btn-ghost no-print" onclick="saveState()">💾 Save</button>
+    <button class="btn btn-ghost no-print" onclick="exportJSON()">⬇ Export JSON</button>
+    <button class="btn btn-primary no-print" onclick="exportPDF()">📄 Export PDF</button>
+  </div>
+</div>
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-track">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+  <div class="progress-label" id="progressLabel">0 / 0 checked</div>
+  <div class="score-badge" id="scoreBadge">Score: —</div>
+</div>
+<!-- MAIN -->
+<div class="main">
+  <!-- SUMMARY -->
+  <div class="summary-section">
+    <div class="summary-title">Summary</div>
+    <div class="summary-grid">
+      <div class="summary-stat">
+        <div class="val val-pass" id="sumPass">0</div>
+        <div class="lbl">Passed</div>
+      </div>
+      <div class="summary-stat">
+        <div class="val val-fail" id="sumFail">0</div>
+        <div class="lbl">Failed</div>
+      </div>
+      <div class="summary-stat">
+        <div class="val val-skip" id="sumSkip">0</div>
+        <div class="lbl">Skipped</div>
+      </div>
+      <div class="summary-stat">
+        <div class="val val-pct" id="sumPct">—</div>
+        <div class="lbl">Pass Rate</div>
+      </div>
+    </div>
+  </div>
+  <!-- GENERAL REVIEW NOTES -->
+  <div class="general-notes">
+    <label>Overall Review Notes</label>
+    <textarea id="generalNotes" placeholder="Write any high-level observations, overall impressions, or notes that don't fit in a specific check item…"></textarea>
+  </div>
+  <!-- ╔══════════════════════════════════╗ -->
+  <!-- ║  SECTION 1 — Auth               ║ -->
+  <!-- ╚══════════════════════════════════╝ -->
+  <div class="section" id="sec-auth">
+    <div class="section-header" onclick="toggleSection('sec-auth')">
+      <div class="section-title">
+        <div class="section-icon" style="background:rgba(99,102,241,0.15)">🔐</div>
+        Authentication
+      </div>
+      <div class="section-meta">
+        <span class="section-count" id="sec-auth-count"></span>
+        <span class="section-toggle">▾</span>
+      </div>
+    </div>
+    <div class="section-body">
+      <!-- items -->
+      <div class="check-item" data-id="auth-1">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Signup — form renders correctly</strong>
+            <span>Navigate to /signup — email field, password field, submit button visible</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('auth-1','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('auth-1','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('auth-1','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field">
+            <div class="note-label">🔴 Gaps / Issues</div>
+            <textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="auth-1-gap"></textarea>
+          </div>
+          <div class="note-field">
+            <div class="note-label">💡 Improvements</div>
+            <textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="auth-1-imp"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="check-item" data-id="auth-2">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Signup — creates account successfully</strong>
+            <span>Enter valid email + password (≥6 chars) → success message "Check your email"</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('auth-2','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('auth-2','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('auth-2','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="auth-2-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="auth-2-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="auth-3">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Login — valid credentials redirect to /dashboard</strong>
+            <span>Enter confirmed email + password → redirected to dashboard</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('auth-3','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('auth-3','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('auth-3','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="auth-3-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="auth-3-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="auth-4">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Login — wrong password shows error</strong>
+            <span>Enter wrong password → red error alert appears, no redirect</span>
+          </div>
+          <span class="priority p-med">Medium</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('auth-4','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('auth-4','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('auth-4','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="auth-4-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="auth-4-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="auth-5">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Auth guard — unauthenticated → redirects to /login</strong>
+            <span>Open /dashboard in incognito or after logout → redirected to /login</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('auth-5','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('auth-5','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('auth-5','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="auth-5-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="auth-5-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="auth-6">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Sign out works</strong>
+            <span>Click sign-out button in navbar → redirected to /login, session cleared</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('auth-6','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('auth-6','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('auth-6','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="auth-6-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="auth-6-imp"></textarea></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ╔══════════════════════════════════╗ -->
+  <!-- ║  SECTION 2 — Dashboard          ║ -->
+  <!-- ╚══════════════════════════════════╝ -->
+  <div class="section" id="sec-dashboard">
+    <div class="section-header" onclick="toggleSection('sec-dashboard')">
+      <div class="section-title">
+        <div class="section-icon" style="background:rgba(34,197,94,0.1)">📊</div>
+        Dashboard
+      </div>
+      <div class="section-meta">
+        <span class="section-count" id="sec-dashboard-count"></span>
+        <span class="section-toggle">▾</span>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="check-item" data-id="dash-1">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Dashboard loads and shows monitor list</strong>
+            <span>After login → /dashboard renders without errors, shows existing monitors</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('dash-1','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('dash-1','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('dash-1','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="dash-1-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="dash-1-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="dash-2">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Empty state shows for new users</strong>
+            <span>Fresh account with no monitors → empty state with "Create Monitor" CTA</span>
+          </div>
+          <span class="priority p-med">Medium</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('dash-2','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('dash-2','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('dash-2','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="dash-2-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="dash-2-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="dash-3">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Monitor cards show correct status pill</strong>
+            <span>Up = green, Down = red, Pending = yellow. Color-coded correctly</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('dash-3','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('dash-3','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('dash-3','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="dash-3-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="dash-3-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="dash-4">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>24hr uptime percentage shows on cards</strong>
+            <span>After worker runs, uptime % is visible on monitor card</span>
+          </div>
+          <span class="priority p-med">Medium</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('dash-4','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('dash-4','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('dash-4','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="dash-4-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="dash-4-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="dash-5">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>🔴 REALTIME — status pill updates without refresh</strong>
+            <span>Keep dashboard open, worker changes a monitor status → pill updates live (≤5s delay)</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('dash-5','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('dash-5','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('dash-5','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="dash-5-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="dash-5-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="dash-6">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Metrics row (Total / Up / Down / Pending) is accurate</strong>
+            <span>Counts at top of dashboard match actual monitor statuses</span>
+          </div>
+          <span class="priority p-med">Medium</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('dash-6','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('dash-6','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('dash-6','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="dash-6-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="dash-6-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="dash-7">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Clicking a monitor card navigates to detail page</strong>
+            <span>Click on any monitor card → /monitors/[id] page loads</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('dash-7','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('dash-7','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('dash-7','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="dash-7-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="dash-7-imp"></textarea></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ╔══════════════════════════════════╗ -->
+  <!-- ║  SECTION 3 — Monitor CRUD       ║ -->
+  <!-- ╚══════════════════════════════════╝ -->
+  <div class="section" id="sec-crud">
+    <div class="section-header" onclick="toggleSection('sec-crud')">
+      <div class="section-title">
+        <div class="section-icon" style="background:rgba(59,130,246,0.1)">🛠</div>
+        Monitor CRUD (Create / Edit / Delete)
+      </div>
+      <div class="section-meta">
+        <span class="section-count" id="sec-crud-count"></span>
+        <span class="section-toggle">▾</span>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="check-item" data-id="crud-1">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>New monitor form renders at /monitors/new</strong>
+            <span>All fields visible: Name, URL, Expected status, Check interval, Timeout</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('crud-1','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('crud-1','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('crud-1','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="crud-1-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="crud-1-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="crud-2">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Create monitor — valid submission works</strong>
+            <span>Fill form with valid URL → submits → redirected to /monitors/[id]</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('crud-2','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('crud-2','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('crud-2','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="crud-2-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="crud-2-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="crud-3">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Create monitor — invalid URL shows error</strong>
+            <span>Enter "notaurl" → API or browser validation prevents submission with error</span>
+          </div>
+          <span class="priority p-med">Medium</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('crud-3','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('crud-3','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('crud-3','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="crud-3-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="crud-3-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="crud-4">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Edit monitor — pre-fills existing values</strong>
+            <span>Click Edit on monitor detail → /monitors/[id]/edit form pre-populated</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('crud-4','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('crud-4','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('crud-4','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="crud-4-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="crud-4-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="crud-5">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Edit monitor — changes saved correctly</strong>
+            <span>Change name/URL → Save → detail page shows updated values</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('crud-5','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('crud-5','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('crud-5','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="crud-5-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="crud-5-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="crud-6">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Pause / Resume monitor works</strong>
+            <span>Click Pause → is_active = false → pill shows "paused". Click Resume → active again</span>
+          </div>
+          <span class="priority p-med">Medium</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('crud-6','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('crud-6','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('crud-6','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="crud-6-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="crud-6-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="crud-7">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Delete monitor — confirm dialog shown, then deleted</strong>
+            <span>Click Delete → confirm dialog → confirm → redirected to /dashboard, monitor gone</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('crud-7','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('crud-7','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('crud-7','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="crud-7-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="crud-7-imp"></textarea></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ╔══════════════════════════════════╗ -->
+  <!-- ║  SECTION 4 — Monitor Detail     ║ -->
+  <!-- ╚══════════════════════════════════╝ -->
+  <div class="section" id="sec-detail">
+    <div class="section-header" onclick="toggleSection('sec-detail')">
+      <div class="section-title">
+        <div class="section-icon" style="background:rgba(234,179,8,0.1)">🔍</div>
+        Monitor Detail Page
+      </div>
+      <div class="section-meta">
+        <span class="section-count" id="sec-detail-count"></span>
+        <span class="section-toggle">▾</span>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="check-item" data-id="det-1">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Detail page loads with monitor info</strong>
+            <span>Name, URL, status pill, metrics row all visible</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('det-1','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('det-1','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('det-1','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="det-1-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="det-1-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="det-2">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Latency chart renders (after worker runs)</strong>
+            <span>Line chart with hourly average latency visible — not blank</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('det-2','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('det-2','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('det-2','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="det-2-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="det-2-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="det-3">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>90-day uptime bar renders correctly</strong>
+            <span>Colored segments (green/red/grey) visible, uptime % shown, dates at ends</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('det-3','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('det-3','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('det-3','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="det-3-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="det-3-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="det-4">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Recent checks table shows ping log data</strong>
+            <span>Table with: time, status, HTTP code, latency, error (if any)</span>
+          </div>
+          <span class="priority p-med">Medium</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('det-4','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('det-4','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('det-4','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="det-4-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="det-4-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="det-5">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Incident banner shows for ongoing incidents</strong>
+            <span>Monitor in DOWN state with open incident → red banner at top of detail page</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('det-5','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('det-5','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('det-5','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="det-5-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="det-5-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="det-6">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Incidents section shows history</strong>
+            <span>Past incidents listed: started_at, resolved_at, duration, cause</span>
+          </div>
+          <span class="priority p-med">Medium</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('det-6','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('det-6','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('det-6','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="det-6-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="det-6-imp"></textarea></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ╔══════════════════════════════════╗ -->
+  <!-- ║  SECTION 5 — Worker             ║ -->
+  <!-- ╚══════════════════════════════════╝ -->
+  <div class="section" id="sec-worker">
+    <div class="section-header" onclick="toggleSection('sec-worker')">
+      <div class="section-title">
+        <div class="section-icon" style="background:rgba(239,68,68,0.1)">⚙️</div>
+        Background Worker
+      </div>
+      <div class="section-meta">
+        <span class="section-count" id="sec-worker-count"></span>
+        <span class="section-toggle">▾</span>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="check-item" data-id="wk-1">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Worker starts without errors</strong>
+            <span>Run <code style="font-family:monospace;color:var(--accent)">bun run src/index.ts</code> → logs "Starting uptime monitor worker…" with no crashes</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('wk-1','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('wk-1','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('wk-1','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="wk-1-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="wk-1-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="wk-2">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Worker writes ping_logs to Supabase</strong>
+            <span>After one tick, check Supabase → ping_logs table has new rows with status + latency</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('wk-2','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('wk-2','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('wk-2','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="wk-2-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="wk-2-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="wk-3">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Worker updates monitor current_status</strong>
+            <span>After pinging, monitors table row shows updated current_status (up/down)</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('wk-3','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('wk-3','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('wk-3','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="wk-3-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="wk-3-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="wk-4">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Incident opens after N consecutive failures</strong>
+            <span>Point monitor at dead URL → after FAILURE_THRESHOLD failures → incident row in DB</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('wk-4','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('wk-4','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('wk-4','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="wk-4-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="wk-4-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="wk-5">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Incident resolves when monitor recovers</strong>
+            <span>Fix the URL → worker next tick → resolved_at set, incident marked closed</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('wk-5','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('wk-5','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('wk-5','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="wk-5-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="wk-5-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="wk-6">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Timeout handling works correctly</strong>
+            <span>Point monitor at a slow endpoint with short timeout → status = "timeout" in ping_logs</span>
+          </div>
+          <span class="priority p-med">Medium</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('wk-6','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('wk-6','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('wk-6','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="wk-6-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="wk-6-imp"></textarea></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ╔══════════════════════════════════╗ -->
+  <!-- ║  SECTION 6 — Incidents          ║ -->
+  <!-- ╚══════════════════════════════════╝ -->
+  <div class="section" id="sec-incidents">
+    <div class="section-header" onclick="toggleSection('sec-incidents')">
+      <div class="section-title">
+        <div class="section-icon" style="background:rgba(239,68,68,0.1)">🚨</div>
+        Incidents Page
+      </div>
+      <div class="section-meta">
+        <span class="section-count" id="sec-incidents-count"></span>
+        <span class="section-toggle">▾</span>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="check-item" data-id="inc-1">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>/incidents page loads all user's incidents</strong>
+            <span>Incidents across all monitors visible in the table</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('inc-1','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('inc-1','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('inc-1','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="inc-1-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="inc-1-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="inc-2">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Filter by Open / Resolved works</strong>
+            <span>Click "Open" → only ongoing incidents shown. "Resolved" → only closed shown</span>
+          </div>
+          <span class="priority p-med">Medium</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('inc-2','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('inc-2','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('inc-2','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="inc-2-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="inc-2-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="inc-3">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Filter by monitor works</strong>
+            <span>Select a specific monitor in dropdown → only that monitor's incidents shown</span>
+          </div>
+          <span class="priority p-med">Medium</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('inc-3','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('inc-3','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('inc-3','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="inc-3-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="inc-3-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="inc-4">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Duration calculated correctly</strong>
+            <span>Ongoing incident shows elapsed time. Resolved shows total downtime</span>
+          </div>
+          <span class="priority p-med">Medium</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('inc-4','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('inc-4','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('inc-4','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="inc-4-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="inc-4-imp"></textarea></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ╔══════════════════════════════════╗ -->
+  <!-- ║  SECTION 7 — Settings / Alerts  ║ -->
+  <!-- ╚══════════════════════════════════╝ -->
+  <div class="section" id="sec-settings">
+    <div class="section-header" onclick="toggleSection('sec-settings')">
+      <div class="section-title">
+        <div class="section-icon" style="background:rgba(59,130,246,0.1)">🔔</div>
+        Settings & Alert Channels
+      </div>
+      <div class="section-meta">
+        <span class="section-count" id="sec-settings-count"></span>
+        <span class="section-toggle">▾</span>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="check-item" data-id="set-1">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Settings page loads</strong>
+            <span>/settings renders: public status URL section, alert channels section, account</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('set-1','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('set-1','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('set-1','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="set-1-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="set-1-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="set-2">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Add email alert channel</strong>
+            <span>Type: Email, Destination: your@email.com → Add → appears in list</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('set-2','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('set-2','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('set-2','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="set-2-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="set-2-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="set-3">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Add webhook alert channel</strong>
+            <span>Type: Webhook, Destination: valid HTTPS URL → Add → appears in list</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('set-3','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('set-3','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('set-3','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="set-3-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="set-3-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="set-4">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Delete alert channel works</strong>
+            <span>Click trash icon on a channel → it's removed from the list</span>
+          </div>
+          <span class="priority p-med">Medium</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('set-4','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('set-4','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('set-4','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="set-4-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="set-4-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="set-5">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Status page URL copy button works</strong>
+            <span>Click Copy → clipboard contains /status/[userId] URL</span>
+          </div>
+          <span class="priority p-low">Low</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('set-5','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('set-5','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('set-5','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="set-5-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="set-5-imp"></textarea></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ╔══════════════════════════════════╗ -->
+  <!-- ║  SECTION 8 — Public Status Page ║ -->
+  <!-- ╚══════════════════════════════════╝ -->
+  <div class="section" id="sec-status">
+    <div class="section-header" onclick="toggleSection('sec-status')">
+      <div class="section-title">
+        <div class="section-icon" style="background:rgba(34,197,94,0.1)">🌐</div>
+        Public Status Page
+      </div>
+      <div class="section-meta">
+        <span class="section-count" id="sec-status-count"></span>
+        <span class="section-toggle">▾</span>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="check-item" data-id="pub-1">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Status page loads without login</strong>
+            <span>Open /status/[userId] in incognito → page loads, no redirect to login</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('pub-1','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('pub-1','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('pub-1','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="pub-1-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="pub-1-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="pub-2">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Overall status banner shows correct state</strong>
+            <span>All up → "All Systems Operational" (green). Any down → "Degraded" (red)</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('pub-2','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('pub-2','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('pub-2','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="pub-2-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="pub-2-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="pub-3">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>90-day uptime bar renders per monitor</strong>
+            <span>Each monitor card has the colored uptime bar with % label</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('pub-3','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('pub-3','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('pub-3','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="pub-3-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="pub-3-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="pub-4">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>No edit controls visible on status page</strong>
+            <span>Read-only — no delete/edit/pause buttons anywhere</span>
+          </div>
+          <span class="priority p-med">Medium</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('pub-4','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('pub-4','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('pub-4','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="pub-4-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="pub-4-imp"></textarea></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ╔══════════════════════════════════╗ -->
+  <!-- ║  SECTION 9 — UX & Design        ║ -->
+  <!-- ╚══════════════════════════════════╝ -->
+  <div class="section" id="sec-ux">
+    <div class="section-header" onclick="toggleSection('sec-ux')">
+      <div class="section-title">
+        <div class="section-icon" style="background:rgba(99,102,241,0.1)">🎨</div>
+        UX, Design & Navigation
+      </div>
+      <div class="section-meta">
+        <span class="section-count" id="sec-ux-count"></span>
+        <span class="section-toggle">▾</span>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="check-item" data-id="ux-1">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Sidebar navigation works on all pages</strong>
+            <span>Dashboard, New Monitor, Incidents, Settings links all work and show active state</span>
+          </div>
+          <span class="priority p-high">High</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('ux-1','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('ux-1','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('ux-1','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="ux-1-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="ux-1-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="ux-2">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Loading states show on form submissions</strong>
+            <span>Buttons show spinner + disabled state while API calls are in-flight</span>
+          </div>
+          <span class="priority p-med">Medium</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('ux-2','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('ux-2','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('ux-2','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="ux-2-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="ux-2-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="ux-3">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Overall visual design looks premium</strong>
+            <span>Dark theme, typography, status pills, cards — does it feel polished?</span>
+          </div>
+          <span class="priority p-low">Low</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('ux-3','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('ux-3','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('ux-3','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="ux-3-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="ux-3-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="ux-4">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>No console errors on any page</strong>
+            <span>Open DevTools → Console → browse all pages → no red errors</span>
+          </div>
+          <span class="priority p-med">Medium</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('ux-4','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('ux-4','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('ux-4','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="ux-4-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="ux-4-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="ux-5">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Back navigation works from detail pages</strong>
+            <span>"Back to Dashboard" link and browser back button work without breaking state</span>
+          </div>
+          <span class="priority p-low">Low</span>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('ux-5','pass',this)">✓ Pass</button>
+            <button class="status-btn" onclick="setStatus('ux-5','fail',this)">✗ Fail</button>
+            <button class="status-btn" onclick="setStatus('ux-5','skip',this)">— Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">🔴 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues…" data-id="ux-5-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements…" data-id="ux-5-imp"></textarea></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- GENERAL IMPROVEMENTS -->
+  <div class="general-notes">
+    <label>🚀 Additional Improvements &amp; Feature Requests</label>
+    <textarea id="featureRequests" placeholder="List any features you'd like added, things that feel missing, or ideas for improvement…" style="min-height:120px"></textarea>
+  </div>
+  <!-- EXPORT BOTTOM BAR -->
+  <div class="no-print" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
+    <div>
+      <div style="font-weight:600;font-size:0.9375rem">Ready to send feedback?</div>
+      <div style="font-size:0.8rem;color:var(--text-2);margin-top:2px">Export your review. Then share the file with your developer to get fixes and improvements applied.</div>
+    </div>
+    <div style="display:flex;gap:10px;flex-shrink:0">
+      <button class="btn btn-ghost" onclick="exportJSON()">⬇ Export JSON</button>
+      <button class="btn btn-primary" onclick="exportPDF()">📄 Export PDF</button>
+    </div>
+  </div>
+</div><!-- /main -->
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+<script>
+// ── STATE ──
+const state = {
+  statuses: {},
+  notes: {}
+};
+// ── INIT ──
+window.addEventListener('DOMContentLoaded', () => {
+  loadState();
+  updateAll();
+  // Auto-save on any input change
+  document.querySelectorAll('textarea').forEach(el => {
+    el.addEventListener('input', () => { saveState(); updateAll(); });
+  });
+});
+// ── STATUS ──
+function setStatus(id, value, btn) {
+  const item = document.querySelector(`[data-id="${id}"]`);
+  const allBtns = item.querySelectorAll('.status-btn');
+  allBtns.forEach(b => b.classList.remove('pass','fail','skip'));
+  btn.classList.add(value);
+  state.statuses[id] = value;
+  saveState();
+  updateAll();
+}
+// ── TOGGLE SECTION ──
+function toggleSection(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('collapsed');
+}
+// ── UPDATE PROGRESS ──
+function updateAll() {
+  const allItems = document.querySelectorAll('.check-item');
+  const total = allItems.length;
+  let pass = 0, fail = 0, skip = 0;
+  allItems.forEach(item => {
+    const id = item.dataset.id;
+    const s = state.statuses[id];
+    if (s === 'pass') pass++;
+    else if (s === 'fail') fail++;
+    else if (s === 'skip') skip++;
+  });
+  const checked = pass + fail + skip;
+  const pct = total > 0 ? Math.round((checked / total) * 100) : 0;
+  const passPct = checked > 0 ? Math.round((pass / checked) * 100) : null;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = `${checked} / ${total} checked`;
+  document.getElementById('scoreBadge').textContent = passPct !== null ? `Pass rate: ${passPct}%` : 'Score: —';
+  document.getElementById('sumPass').textContent = pass;
+  document.getElementById('sumFail').textContent = fail;
+  document.getElementById('sumSkip').textContent = skip;
+  document.getElementById('sumPct').textContent = passPct !== null ? `${passPct}%` : '—';
+  // Section counts
+  const sections = ['auth','dashboard','crud','detail','worker','incidents','settings','status','ux'];
+  const prefixes = ['auth','dash','crud','det','wk','inc','set','pub','ux'];
+  sections.forEach((sec, i) => {
+    const prefix = prefixes[i];
+    const secItems = document.querySelectorAll(`[data-id^="${prefix}-"]`);
+    let sp=0,sf=0,ss=0;
+    secItems.forEach(el => {
+      const s = state.statuses[el.dataset.id];
+      if(s==='pass') sp++;
+      else if(s==='fail') sf++;
+      else if(s==='skip') ss++;
+    });
+    const sChecked = sp+sf+ss;
+    const el = document.getElementById(`sec-${sec}-count`);
+    if(el) el.textContent = sChecked > 0 ? `${sp}✓ ${sf}✗ ${ss}—` : `${secItems.length} items`;
+  });
+  // Collect note values
+  document.querySelectorAll('.note-input').forEach(el => {
+    state.notes[el.dataset.id] = el.value;
+  });
+  state.notes['generalNotes'] = document.getElementById('generalNotes').value;
+  state.notes['featureRequests'] = document.getElementById('featureRequests').value;
+}
+// ── SAVE / LOAD ──
+function saveState() {
+  updateAll();
+  try {
+    localStorage.setItem('netpulse-qa', JSON.stringify(state));
+  } catch(e) {}
+}
+function loadState() {
+  try {
+    const saved = localStorage.getItem('netpulse-qa');
+    if (!saved) return;
+    const parsed = JSON.parse(saved);
+    if (parsed.statuses) {
+      Object.entries(parsed.statuses).forEach(([id, val]) => {
+        state.statuses[id] = val;
+        const item = document.querySelector(`[data-id="${id}"]`);
+        if (!item) return;
+        const btn = item.querySelector(`.status-btn:nth-child(${val==='pass'?1:val==='fail'?2:3})`);
+        if(btn) btn.classList.add(val);
+      });
+    }
+    if (parsed.notes) {
+      Object.entries(parsed.notes).forEach(([id, val]) => {
+        if(id === 'generalNotes') {
+          const el = document.getElementById('generalNotes');
+          if(el) el.value = val;
+        } else if(id === 'featureRequests') {
+          const el = document.getElementById('featureRequests');
+          if(el) el.value = val;
+        } else {
+          const el = document.querySelector(`[data-id="${id}"]`);
+          if(el) el.value = val;
+        }
+        state.notes[id] = val;
+      });
+    }
+  } catch(e) {}
+}
+function resetAll() {
+  if (!confirm('Reset ALL data? This cannot be undone.')) return;
+  localStorage.removeItem('netpulse-qa');
+  location.reload();
+}
+// ── EXPORT JSON ──
+function exportJSON() {
+  updateAll();
+  const allItems = document.querySelectorAll('.check-item');
+  const items = [];
+  allItems.forEach(item => {
+    const id = item.dataset.id;
+    const label = item.querySelector('strong').textContent;
+    items.push({
+      id,
+      label,
+      status: state.statuses[id] || 'unchecked',
+      gap: state.notes[`${id}-gap`] || '',
+      improvement: state.notes[`${id}-imp`] || '',
+    });
+  });
+  const out = {
+    project: 'NetPulse',
+    exportedAt: new Date().toISOString(),
+    summary: {
+      total: items.length,
+      passed: items.filter(i=>i.status==='pass').length,
+      failed: items.filter(i=>i.status==='fail').length,
+      skipped: items.filter(i=>i.status==='skip').length,
+      unchecked: items.filter(i=>i.status==='unchecked').length,
+    },
+    items,
+    generalNotes: state.notes['generalNotes'] || '',
+    featureRequests: state.notes['featureRequests'] || '',
+  };
+  const blob = new Blob([JSON.stringify(out, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `netpulse-qa-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  showToast('✅ JSON exported successfully');
+}
+// ── EXPORT PDF ──
+function exportPDF() {
+  showToast('🖨 Opening print dialog — choose "Save as PDF"');
+  setTimeout(() => window.print(), 400);
+}
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>

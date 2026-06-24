@@ -1,16 +1,22 @@
 {
-  "name": "worker",
-  "module": "index.ts",
+  "name": "netpulse-worker",
+  "version": "1.0.0",
+  "description": "NetPulse uptime monitoring worker — polls due monitors and writes results to Supabase",
   "type": "module",
   "private": true,
-  "devDependencies": {
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
+  "scripts": {
+    "dev": "dotenv -e .env -- bun run src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test": "bun test"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.108.2",
     "dotenv": "^17.4.2"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
   }
 }

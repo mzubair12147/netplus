@@ -1,0 +1,4 @@
+[build]
+  base = "worker"
+  build_command = "npm run build"
+  start_command = "node dist/index.js"

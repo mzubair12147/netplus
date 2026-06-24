@@ -1,0 +1,365 @@
+{
+  "project": "NetPulse",
+  "exportedAt": "2026-06-24T00:58:38.045Z",
+  "summary": {
+    "total": 50,
+    "passed": 47,
+    "failed": 0,
+    "skipped": 3,
+    "unchecked": 0
+  },
+  "items": [
+    {
+      "id": "auth-1",
+      "label": "Signup — form renders correctly",
+      "status": "skip",
+      "gap": "visually hard to read the parts of the form",
+      "improvement": "also take full name and maybe username and any roles if involved. Okay"
+    },
+    {
+      "id": "auth-2",
+      "label": "Signup — creates account successfully",
+      "status": "pass",
+      "gap": "I think the email sending stuff on supabase is not set that's why I didnt' receive any email and I turned the setting off to confirm emal and then I got sign up ",
+      "improvement": "Improve the signup feedback based on the signup result. OKay"
+    },
+    {
+      "id": "auth-3",
+      "label": "Login — valid credentials redirect to /dashboard",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "auth-4",
+      "label": "Login — wrong password shows error",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "auth-5",
+      "label": "Auth guard — unauthenticated → redirects to /login",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "auth-6",
+      "label": "Sign out works",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "dash-1",
+      "label": "Dashboard loads and shows monitor list",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "dash-2",
+      "label": "Empty state shows for new users",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "dash-3",
+      "label": "Monitor cards show correct status pill",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "dash-4",
+      "label": "24hr uptime percentage shows on cards",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "dash-5",
+      "label": "🔴 REALTIME — status pill updates without refresh",
+      "status": "skip",
+      "gap": "page data and status was not updated without refreshed",
+      "improvement": "also provide a manual refersh buttonf or the user and only let the user to refresh after 30 seconds. Okay"
+    },
+    {
+      "id": "dash-6",
+      "label": "Metrics row (Total / Up / Down / Pending) is accurate",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "dash-7",
+      "label": "Clicking a monitor card navigates to detail page",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "crud-1",
+      "label": "New monitor form renders at /monitors/new",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "crud-2",
+      "label": "Create monitor — valid submission works",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "crud-3",
+      "label": "Create monitor — invalid URL shows error",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "crud-4",
+      "label": "Edit monitor — pre-fills existing values",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "crud-5",
+      "label": "Edit monitor — changes saved correctly",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "crud-6",
+      "label": "Pause / Resume monitor works",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "crud-7",
+      "label": "Delete monitor — confirm dialog shown, then deleted",
+      "status": "pass",
+      "gap": "But it shows an alert of default browser confirmation. I think we need to create our own dialog box or used shadcn for this kind of purposes and also reflect the processing or loading request with a loadding spinner it looks more professional. Okay",
+      "improvement": ""
+    },
+    {
+      "id": "det-1",
+      "label": "Detail page loads with monitor info",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "det-2",
+      "label": "Latency chart renders (after worker runs)",
+      "status": "pass",
+      "gap": "the chara show the data under 24 hours but sofar I am unable to see anything other then 1 vertical bar line. I thikn we need to make the chart more grannular and efficient. but I an not 100% sure about that and in future we will make more extensions in our project so I think we also need to consider that before hand in our project",
+      "improvement": ""
+    },
+    {
+      "id": "det-3",
+      "label": "90-day uptime bar renders correctly",
+      "status": "pass",
+      "gap": "Yes but I don't know like what metrics is deciding that the bar for a day will be gree or red and also 1 request of the day can make the bar gree and 1 bad response can make the bar red. so I think there is a room for improvement there but still I am satisfied with the chart and if more changes or complexity is required in the changes then we can do something seperately. you can decide things related to it on your own. Okay",
+      "improvement": ""
+    },
+    {
+      "id": "det-4",
+      "label": "Recent checks table shows ping log data",
+      "status": "pass",
+      "gap": "",
+      "improvement": "I was thinking of applying pagination to our rercent checks and other parts of the tables and also filtering based on different fields values and expecially date and time filters"
+    },
+    {
+      "id": "det-5",
+      "label": "Incident banner shows for ongoing incidents",
+      "status": "pass",
+      "gap": "",
+      "improvement": "same improvements as the recent checks because it is a table and also try to keep the code dry because we will be creating a  lot of tables because of the current decision of improvements. OKay"
+    },
+    {
+      "id": "det-6",
+      "label": "Incidents section shows history",
+      "status": "skip",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "wk-1",
+      "label": "Worker starts without errors",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "wk-2",
+      "label": "Worker writes ping_logs to Supabase",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "wk-3",
+      "label": "Worker updates monitor current_status",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "wk-4",
+      "label": "Incident opens after N consecutive failures",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "wk-5",
+      "label": "Incident resolves when monitor recovers",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "wk-6",
+      "label": "Timeout handling works correctly",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "inc-1",
+      "label": "/incidents page loads all user's incidents",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "inc-2",
+      "label": "Filter by Open / Resolved works",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "inc-3",
+      "label": "Filter by monitor works",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "inc-4",
+      "label": "Duration calculated correctly",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "set-1",
+      "label": "Settings page loads",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "set-2",
+      "label": "Add email alert channel",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "set-3",
+      "label": "Add webhook alert channel",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "set-4",
+      "label": "Delete alert channel works",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "set-5",
+      "label": "Status page URL copy button works",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "pub-1",
+      "label": "Status page loads without login",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "pub-2",
+      "label": "Overall status banner shows correct state",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "pub-3",
+      "label": "90-day uptime bar renders per monitor",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "pub-4",
+      "label": "No edit controls visible on status page",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "ux-1",
+      "label": "Sidebar navigation works on all pages",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "ux-2",
+      "label": "Loading states show on form submissions",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "ux-3",
+      "label": "Overall visual design looks premium",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "ux-4",
+      "label": "No console errors on any page",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    },
+    {
+      "id": "ux-5",
+      "label": "Back navigation works from detail pages",
+      "status": "pass",
+      "gap": "",
+      "improvement": ""
+    }
+  ],
+  "generalNotes": "",
+  "featureRequests": "I think there is a very need to add some stuff like making the website feel more like have a geneuine purpose and have features to exist like taking over a problem of a user and then satisfies. like by using workflows or something else. I am not sure about that but I want you to think about it and come up with a plan and based on that I think the project will be automatically extended with other sutff that we usually see in a real world project to manage users and other stuff (I am not sure about all of them but they are like non-functional requirements or like must to have in order to make the product survive in the market. but we will implement that at the very end of the project and not now) our only focus now is the core purpose and usefullness and I think we will extend upon what we have now and then take it to what we want to have or what we want to look like. I guess these are my assumptions right now.\n\n\n\n1 more important things, and strictly speaking. the project shouldn't feel like written or generated by an AI. okay and every aspect of it should feel like created by a real engineer and alsos the things are currently existed in the project are good and I am ok with them and do not remove them from the project. Okay"
+}

@@ -1,17 +1,12 @@
-export interface Env {
-    SUPABASE_URL: string;
-    SUPABASE_SERVICE_ROLE_KEY: string;
-}
-
-export interface WorkerContext {
-    env: Env;
-    fetch: typeof fetch;
-}
-
-export interface CheckResult {}
-
-// monitor table types
 export type MonitorStatus = "up" | "down" | "pending";
+export type CheckStatus = "up" | "down" | "timeout" | "error";
+
+export interface CheckResult {
+    status: CheckStatus;
+    httpStatusCode: number | null;
+    latencyMs: number;
+    errorMessage: string | null;
+}
 
 export interface Monitor {
     id: string;
@@ -33,10 +28,8 @@ export interface UpdateMonitorState {
     consecutive_failures: number;
     current_status: MonitorStatus;
     next_check_at: string;
-    // check_interval_seconds: number;
 }
 
-// Optional: Types for inserting or updating records (omitting auto-generated fields)
 export type InsertMonitor = Omit<Monitor, "id" | "created_at"> &
     Partial<
         Pick<
