@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>NetPulse — QA Review Document</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+  :root {
+    --bg: #0a0b0f;
+    --surface: #111218;
+    --elevated: #1a1c26;
+    --border: #1e2035;
+    --accent: #6366f1;
+    --accent-light: rgba(99,102,241,0.12);
+    --green: #22c55e;
+    --green-bg: rgba(34,197,94,0.1);
+    --red: #ef4444;
+    --red-bg: rgba(239,68,68,0.1);
+    --yellow: #eab308;
+    --yellow-bg: rgba(234,179,8,0.1);
+    --blue: #3b82f6;
+    --blue-bg: rgba(59,130,246,0.1);
+    --text: #f0f1f6;
+    --text-2: #8b8fa8;
+    --text-3: #4a4e6b;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { color-scheme: dark; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 80px;
+  }
+  /* ── HEADER ── */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 28px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+  }
+  .header-left h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+  .header-left h1 span { color: var(--accent); }
+  .header-left p { color: var(--text-2); font-size: 0.8rem; margin-top: 2px; }
+  .header-right { display: flex; gap: 10px; align-items: center; }
+  /* ── PROGRESS BAR ── */
+  .progress-wrap {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 40px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .progress-track {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--green));
+    border-radius: 99px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+  .progress-label { font-size: 0.8rem; color: var(--text-2); white-space: nowrap; min-width: 80px; text-align: right; }
+  .score-badge {
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: var(--accent-light);
+    color: var(--accent);
+    white-space: nowrap;
+  }
+  /* ── MAIN ── */
+  .main { max-width: 900px; margin: 0 auto; padding: 32px 24px; }
+  /* ── SECTION ── */
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .section-header {
+    padding: 16px 20px;
+    background: var(--elevated);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-header:hover { background: #1e2030; }
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    font-size: 0.9375rem;
+  }
+  .section-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .section-meta { display: flex; align-items: center; gap: 10px; }
+  .section-count { font-size: 0.75rem; color: var(--text-3); }
+  .section-toggle { color: var(--text-3); font-size: 12px; transition: transform 0.2s; }
+  .section.collapsed .section-toggle { transform: rotate(-90deg); }
+  .section-body { padding: 0; }
+  .section.collapsed .section-body { display: none; }
+  /* ── CHECK ITEMS ── */
+  .check-item {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  .check-item:last-child { border-bottom: none; }
+  .check-item:hover { background: rgba(255,255,255,0.02); }
+  .check-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .check-label {
+    flex: 1;
+    min-width: 0;
+  }
+  .check-label strong {
+    display: block;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+  .check-label span {
+    font-size: 0.8rem;
+    color: var(--text-3);
+  }
+  /* Status selector */
+  .status-selector {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .status-btn {
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-2);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+  .status-btn:hover { background: var(--elevated); }
+  .status-btn.pass { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+  .status-btn.fail { background: var(--red-bg); border-color: var(--red); color: var(--red); }
+  .status-btn.skip { background: var(--yellow-bg); border-color: var(--yellow); color: var(--yellow); }
+  /* Notes & improvements */
+  .check-notes {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .note-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .note-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .note-input {
+    background: var(--elevated);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.8rem;
+    padding: 7px 10px;
+    resize: vertical;
+    min-height: 56px;
+    transition: border-color 0.15s;
+    outline: none;
+    width: 100%;
+  }
+  .note-input:focus { border-color: var(--accent); }
+  .note-input::placeholder { color: var(--text-3); }
+  .note-input.gap-field:focus { border-color: var(--red); }
+  .note-input.improvement-field:focus { border-color: var(--blue); }
+  /* ── SUMMARY SECTION ── */
+  .summary-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .summary-title { font-size: 0.875rem; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 16px; }
+  .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .summary-stat {
+    background: var(--elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+    text-align: center;
+  }
+  .summary-stat .val { font-size: 2rem; font-weight: 800; letter-spacing: -0.04em; }
+  .summary-stat .lbl { font-size: 0.72rem; color: var(--text-3); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .val-pass { color: var(--green); }
+  .val-fail { color: var(--red); }
+  .val-skip { color: var(--yellow); }
+  .val-pct { color: var(--accent); }
+  /* ── GENERAL NOTES ── */
+  .general-notes {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .general-notes textarea {
+    width: 100%;
+    background: var(--elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.875rem;
+    padding: 12px;
+    resize: vertical;
+    min-height: 100px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .general-notes textarea:focus { border-color: var(--accent); }
+  .general-notes textarea::placeholder { color: var(--text-3); }
+  .general-notes label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-2); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 16px;
+    border-radius: 7px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    font-family: inherit;
+    transition: all 0.15s;
+    text-decoration: none;
+  }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-primary:hover { filter: brightness(1.1); box-shadow: 0 0 16px rgba(99,102,241,0.3); }
+  .btn-ghost { background: transparent; color: var(--text-2); border-color: var(--border); }
+  .btn-ghost:hover { background: var(--elevated); color: var(--text); }
+  .btn-green { background: var(--green-bg); color: var(--green); border-color: var(--green); }
+  .btn-green:hover { filter: brightness(1.15); }
+  /* ── PRIORITY BADGE ── */
+  .priority {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    flex-shrink: 0;
+  }
+  .p-high { background: var(--red-bg); color: var(--red); }
+  .p-med { background: var(--yellow-bg); color: var(--yellow); }
+  .p-low { background: var(--blue-bg); color: var(--blue); }
+  /* ── PRINT / PDF ── */
+  @media print {
+    body { background: #fff; color: #000; font-size: 12px; }
+    .header { position: static; background: #fff; border-bottom: 2px solid #000; }
+    .header-right, .progress-wrap { display: none; }
+    .section { border: 1px solid #ccc; page-break-inside: avoid; }
+    .section-header { background: #f5f5f5; }
+    .check-item { border-bottom: 1px solid #eee; }
+    .note-input { border: 1px solid #ccc; background: #fafafa; color: #000; }
+    .status-btn { display: none; }
+    .status-display { display: inline; }
+    textarea { color: #000; background: #fafafa; border: 1px solid #ccc; }
+    .summary-stat { border: 1px solid #ccc; background: #f9f9f9; }
+    .summary-stat .val { color: #000; }
+    .no-print { display: none !important; }
+  }
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 18px;
+    font-size: 0.875rem;
+    color: var(--text);
+    z-index: 999;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: all 0.25s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  /* ── DIVIDER ── */
+  hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+  .section-complete-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: none;
+  }
+</style>
+</head>
+<body>
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <h1>Net<span>Pulse</span> — QA Review</h1>
+    <p>Fill in each check item, note gaps, and list improvements. Export when done.</p>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-ghost no-print" onclick="resetAll()">↺ Reset</button>
+    <button class="btn btn-ghost no-print" onclick="saveState()">💾 Save</button>
+    <button class="btn btn-ghost no-print" onclick="exportJSON()">⬇ Export JSON</button>
+    <button class="btn btn-primary no-print" onclick="exportPDF()">📄 Export PDF</button>
+  </div>
+</div>
+<!-- PROGRESS -->
+<div class="progress-wrap">
+  <div class="progress-track">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+  <div class="progress-label" id="progressLabel">0 / 0 checked</div>
+  <div class="score-badge" id="scoreBadge">Score: —</div>
+</div>
+<!-- MAIN -->
+<div class="main">
+  <!-- SUMMARY -->
+  <div class="summary-section">
+    <div class="summary-title">Summary</div>
+    <div class="summary-grid">
+      <div class="summary-stat">
+        <div class="val val-pass" id="sumPass">0</div>
+        <div class="lbl">Passed</div>
+      </div>
+      <div class="summary-stat">
+        <div class="val val-fail" id="sumFail">0</div>
+        <div class="lbl">Failed</div>
+      </div>
+      <div class="summary-stat">
+        <div class="val val-skip" id="sumSkip">0</div>
+        <div class="lbl">Skipped</div>
+      </div>
+      <div class="summary-stat">
+        <div class="val val-pct" id="sumPct">—</div>
+        <div class="lbl">Pass Rate</div>
+      </div>
+    </div>
+  </div>
+  <!-- GENERAL REVIEW NOTES -->
+  <div class="general-notes">
+    <label>Overall Review Notes</label>
+    <textarea id="generalNotes" placeholder="Write any high-level observations, overall impressions, or notes that don't fit in a specific check item…"></textarea>
+  </div>
+  <!-- ╔══════════════════════════════════╗ -->
+  <!-- ║  SECTION 1 — Auth               ║ -->
+  <!-- ╚══════════════════════════════════╝ -->
+  
+  <!-- ===================================================================== -->
+  <!-- SPRINT 3 & 4 SECTIONS -->
+  <!-- ===================================================================== -->
+
+  <div class="section" id="sec-keyword">
+    <div class="section-header" onclick="toggleSection('sec-keyword')">
+      <div class="section-title">
+        <div class="section-icon" style="background:rgba(99,102,241,0.15)">🔍</div>
+        Keyword Monitors (Sprint 3)
+      </div>
+      <div class="section-meta">
+        <span class="section-count" id="sec-keyword-count">3 items</span>
+        <div class="section-toggle">▼</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="check-item" data-id="kw-1">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Create a Keyword Monitor</strong>
+            <span>Select 'Keyword' type in the new monitor form. Keyword field appears and is required.</span>
+          </div>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('kw-1', 'pass')">Pass</button>
+            <button class="status-btn" onclick="setStatus('kw-1', 'fail')">Fail</button>
+            <button class="status-btn" onclick="setStatus('kw-1', 'skip')">Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">📝 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues..." data-id="kw-1-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements..." data-id="kw-1-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="kw-2">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Worker detects missing keyword</strong>
+            <span>If the keyword is NOT present on the target page, the monitor marks the status as DOWN.</span>
+          </div>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('kw-2', 'pass')">Pass</button>
+            <button class="status-btn" onclick="setStatus('kw-2', 'fail')">Fail</button>
+            <button class="status-btn" onclick="setStatus('kw-2', 'skip')">Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">📝 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues..." data-id="kw-2-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements..." data-id="kw-2-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="kw-3">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Keyword badge in UI</strong>
+            <span>Keyword monitors have a small 'keyword' badge next to their name on the dashboard and detail pages.</span>
+          </div>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('kw-3', 'pass')">Pass</button>
+            <button class="status-btn" onclick="setStatus('kw-3', 'fail')">Fail</button>
+            <button class="status-btn" onclick="setStatus('kw-3', 'skip')">Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">📝 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues..." data-id="kw-3-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements..." data-id="kw-3-imp"></textarea></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="sec-status">
+    <div class="section-header" onclick="toggleSection('sec-status')">
+      <div class="section-title">
+        <div class="section-icon" style="background:rgba(34,197,94,0.1)">🌐</div>
+        Status Page Customization (Sprint 3)
+      </div>
+      <div class="section-meta">
+        <span class="section-count" id="sec-status-count">3 items</span>
+        <div class="section-toggle">▼</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="check-item" data-id="st-1">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Update settings in UI</strong>
+            <span>Settings > Status Page allows updating 'Company Name' and 'Description'. Updates save successfully to user metadata.</span>
+          </div>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('st-1', 'pass')">Pass</button>
+            <button class="status-btn" onclick="setStatus('st-1', 'fail')">Fail</button>
+            <button class="status-btn" onclick="setStatus('st-1', 'skip')">Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">📝 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues..." data-id="st-1-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements..." data-id="st-1-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="st-2">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Public page rendering</strong>
+            <span>Public status page displays the custom company name in the header, and the description below it.</span>
+          </div>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('st-2', 'pass')">Pass</button>
+            <button class="status-btn" onclick="setStatus('st-2', 'fail')">Fail</button>
+            <button class="status-btn" onclick="setStatus('st-2', 'skip')">Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">📝 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues..." data-id="st-2-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements..." data-id="st-2-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="st-3">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>SEO & OG Metadata</strong>
+            <span>The public status page has proper <title> and <meta> tags that include the Company Name dynamically.</span>
+          </div>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('st-3', 'pass')">Pass</button>
+            <button class="status-btn" onclick="setStatus('st-3', 'fail')">Fail</button>
+            <button class="status-btn" onclick="setStatus('st-3', 'skip')">Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">📝 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues..." data-id="st-3-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements..." data-id="st-3-imp"></textarea></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="sec-keys">
+    <div class="section-header" onclick="toggleSection('sec-keys')">
+      <div class="section-title">
+        <div class="section-icon" style="background:rgba(59,130,246,0.1)">🔑</div>
+        API Keys (Sprint 3)
+      </div>
+      <div class="section-meta">
+        <span class="section-count" id="sec-keys-count">4 items</span>
+        <div class="section-toggle">▼</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="check-item" data-id="ak-1">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Create new key</strong>
+            <span>Can generate a new named API key. Limit of 10 is enforced.</span>
+          </div>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('ak-1', 'pass')">Pass</button>
+            <button class="status-btn" onclick="setStatus('ak-1', 'fail')">Fail</button>
+            <button class="status-btn" onclick="setStatus('ak-1', 'skip')">Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">📝 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues..." data-id="ak-1-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements..." data-id="ak-1-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="ak-2">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>View once behaviour</strong>
+            <span>Raw API key is shown exactly ONCE after creation, with a copy button. It is hidden after dismissing the modal.</span>
+          </div>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('ak-2', 'pass')">Pass</button>
+            <button class="status-btn" onclick="setStatus('ak-2', 'fail')">Fail</button>
+            <button class="status-btn" onclick="setStatus('ak-2', 'skip')">Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">📝 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues..." data-id="ak-2-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements..." data-id="ak-2-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="ak-3">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>List view & Prefix</strong>
+            <span>List shows the key prefix (e.g. `np_abcd••••`) and dates but never the full key.</span>
+          </div>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('ak-3', 'pass')">Pass</button>
+            <button class="status-btn" onclick="setStatus('ak-3', 'fail')">Fail</button>
+            <button class="status-btn" onclick="setStatus('ak-3', 'skip')">Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">📝 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues..." data-id="ak-3-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements..." data-id="ak-3-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="ak-4">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Revoke key</strong>
+            <span>Can delete/revoke a key with a confirmation modal. The key is instantly removed from the list.</span>
+          </div>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('ak-4', 'pass')">Pass</button>
+            <button class="status-btn" onclick="setStatus('ak-4', 'fail')">Fail</button>
+            <button class="status-btn" onclick="setStatus('ak-4', 'skip')">Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">📝 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues..." data-id="ak-4-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements..." data-id="ak-4-imp"></textarea></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section" id="sec-hardening">
+    <div class="section-header" onclick="toggleSection('sec-hardening')">
+      <div class="section-title">
+        <div class="section-icon" style="background:rgba(234,179,8,0.1)">🛡️</div>
+        Production Hardening (Sprint 4)
+      </div>
+      <div class="section-meta">
+        <span class="section-count" id="sec-hardening-count">5 items</span>
+        <div class="section-toggle">▼</div>
+      </div>
+    </div>
+    <div class="section-body">
+      <div class="check-item" data-id="ph-1">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Custom 404 Page</strong>
+            <span>Navigating to an invalid URL (e.g. `/fake-url`) shows a branded 404 page with a 90-bar decoration.</span>
+          </div>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('ph-1', 'pass')">Pass</button>
+            <button class="status-btn" onclick="setStatus('ph-1', 'fail')">Fail</button>
+            <button class="status-btn" onclick="setStatus('ph-1', 'skip')">Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">📝 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues..." data-id="ph-1-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements..." data-id="ph-1-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="ph-2">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Custom 500 Page</strong>
+            <span>Runtime errors display a custom red-themed 500 page, showing `error.digest` for debugging (in dev).</span>
+          </div>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('ph-2', 'pass')">Pass</button>
+            <button class="status-btn" onclick="setStatus('ph-2', 'fail')">Fail</button>
+            <button class="status-btn" onclick="setStatus('ph-2', 'skip')">Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">📝 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues..." data-id="ph-2-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements..." data-id="ph-2-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="ph-3">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>CSV Export - Monitor Details</strong>
+            <span>Clicking "Export CSV" on a Monitor Detail page downloads Ping Logs and Incidents correctly formatted.</span>
+          </div>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('ph-3', 'pass')">Pass</button>
+            <button class="status-btn" onclick="setStatus('ph-3', 'fail')">Fail</button>
+            <button class="status-btn" onclick="setStatus('ph-3', 'skip')">Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">📝 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues..." data-id="ph-3-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements..." data-id="ph-3-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="ph-4">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>CSV Export - Global Incidents</strong>
+            <span>Clicking "Export CSV" on the main Incidents page downloads all incidents across monitors correctly.</span>
+          </div>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('ph-4', 'pass')">Pass</button>
+            <button class="status-btn" onclick="setStatus('ph-4', 'fail')">Fail</button>
+            <button class="status-btn" onclick="setStatus('ph-4', 'skip')">Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">📝 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues..." data-id="ph-4-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements..." data-id="ph-4-imp"></textarea></div>
+        </div>
+      </div>
+      <div class="check-item" data-id="ph-5">
+        <div class="check-row">
+          <div class="check-label">
+            <strong>Browser Tab Alert Badge</strong>
+            <span>If 1+ monitors are down, the Dashboard browser tab title updates to "⚠️ X Down · Dashboard · NetPulse".</span>
+          </div>
+          <div class="status-selector">
+            <button class="status-btn" onclick="setStatus('ph-5', 'pass')">Pass</button>
+            <button class="status-btn" onclick="setStatus('ph-5', 'fail')">Fail</button>
+            <button class="status-btn" onclick="setStatus('ph-5', 'skip')">Skip</button>
+          </div>
+        </div>
+        <div class="check-notes">
+          <div class="note-field"><div class="note-label">📝 Gaps / Issues</div><textarea class="note-input gap-field" placeholder="Describe any bugs or issues..." data-id="ph-5-gap"></textarea></div>
+          <div class="note-field"><div class="note-label">💡 Improvements</div><textarea class="note-input improvement-field" placeholder="Suggest improvements..." data-id="ph-5-imp"></textarea></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- GENERAL IMPROVEMENTS -->
+  <div class="general-notes">
+    <label>🚀 Additional Improvements &amp; Feature Requests</label>
+    <textarea id="featureRequests" placeholder="List any features you'd like added, things that feel missing, or ideas for improvement…" style="min-height:120px"></textarea>
+  </div>
+  <!-- EXPORT BOTTOM BAR -->
+  <div class="no-print" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
+    <div>
+      <div style="font-weight:600;font-size:0.9375rem">Ready to send feedback?</div>
+      <div style="font-size:0.8rem;color:var(--text-2);margin-top:2px">Export your review. Then share the file with your developer to get fixes and improvements applied.</div>
+    </div>
+    <div style="display:flex;gap:10px;flex-shrink:0">
+      <button class="btn btn-ghost" onclick="exportJSON()">⬇ Export JSON</button>
+      <button class="btn btn-primary" onclick="exportPDF()">📄 Export PDF</button>
+    </div>
+  </div>
+</div><!-- /main -->
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+<script>
+// ── STATE ──
+const state = {
+  statuses: {},
+  notes: {}
+};
+// ── INIT ──
+window.addEventListener('DOMContentLoaded', () => {
+  loadState();
+  updateAll();
+  // Auto-save on any input change
+  document.querySelectorAll('textarea').forEach(el => {
+    el.addEventListener('input', () => { saveState(); updateAll(); });
+  });
+});
+// ── STATUS ──
+function setStatus(id, value, btn) {
+  const item = document.querySelector(`[data-id="${id}"]`);
+  const allBtns = item.querySelectorAll('.status-btn');
+  allBtns.forEach(b => b.classList.remove('pass','fail','skip'));
+  btn.classList.add(value);
+  state.statuses[id] = value;
+  saveState();
+  updateAll();
+}
+// ── TOGGLE SECTION ──
+function toggleSection(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('collapsed');
+}
+// ── UPDATE PROGRESS ──
+function updateAll() {
+  const allItems = document.querySelectorAll('.check-item');
+  const total = allItems.length;
+  let pass = 0, fail = 0, skip = 0;
+  allItems.forEach(item => {
+    const id = item.dataset.id;
+    const s = state.statuses[id];
+    if (s === 'pass') pass++;
+    else if (s === 'fail') fail++;
+    else if (s === 'skip') skip++;
+  });
+  const checked = pass + fail + skip;
+  const pct = total > 0 ? Math.round((checked / total) * 100) : 0;
+  const passPct = checked > 0 ? Math.round((pass / checked) * 100) : null;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = `${checked} / ${total} checked`;
+  document.getElementById('scoreBadge').textContent = passPct !== null ? `Pass rate: ${passPct}%` : 'Score: —';
+  document.getElementById('sumPass').textContent = pass;
+  document.getElementById('sumFail').textContent = fail;
+  document.getElementById('sumSkip').textContent = skip;
+  document.getElementById('sumPct').textContent = passPct !== null ? `${passPct}%` : '—';
+  // Section counts
+  const sections = ['auth','dashboard','crud','detail','worker','incidents','settings','status','ux'];
+  const prefixes = ['auth','dash','crud','det','wk','inc','set','pub','ux'];
+  sections.forEach((sec, i) => {
+    const prefix = prefixes[i];
+    const secItems = document.querySelectorAll(`[data-id^="${prefix}-"]`);
+    let sp=0,sf=0,ss=0;
+    secItems.forEach(el => {
+      const s = state.statuses[el.dataset.id];
+      if(s==='pass') sp++;
+      else if(s==='fail') sf++;
+      else if(s==='skip') ss++;
+    });
+    const sChecked = sp+sf+ss;
+    const el = document.getElementById(`sec-${sec}-count`);
+    if(el) el.textContent = sChecked > 0 ? `${sp}✓ ${sf}✗ ${ss}—` : `${secItems.length} items`;
+  });
+  // Collect note values
+  document.querySelectorAll('.note-input').forEach(el => {
+    state.notes[el.dataset.id] = el.value;
+  });
+  state.notes['generalNotes'] = document.getElementById('generalNotes').value;
+  state.notes['featureRequests'] = document.getElementById('featureRequests').value;
+}
+// ── SAVE / LOAD ──
+function saveState() {
+  updateAll();
+  try {
+    localStorage.setItem('netpulse-qa', JSON.stringify(state));
+  } catch(e) {}
+}
+function loadState() {
+  try {
+    const saved = localStorage.getItem('netpulse-qa');
+    if (!saved) return;
+    const parsed = JSON.parse(saved);
+    if (parsed.statuses) {
+      Object.entries(parsed.statuses).forEach(([id, val]) => {
+        state.statuses[id] = val;
+        const item = document.querySelector(`[data-id="${id}"]`);
+        if (!item) return;
+        const btn = item.querySelector(`.status-btn:nth-child(${val==='pass'?1:val==='fail'?2:3})`);
+        if(btn) btn.classList.add(val);
+      });
+    }
+    if (parsed.notes) {
+      Object.entries(parsed.notes).forEach(([id, val]) => {
+        if(id === 'generalNotes') {
+          const el = document.getElementById('generalNotes');
+          if(el) el.value = val;
+        } else if(id === 'featureRequests') {
+          const el = document.getElementById('featureRequests');
+          if(el) el.value = val;
+        } else {
+          const el = document.querySelector(`[data-id="${id}"]`);
+          if(el) el.value = val;
+        }
+        state.notes[id] = val;
+      });
+    }
+  } catch(e) {}
+}
+function resetAll() {
+  if (!confirm('Reset ALL data? This cannot be undone.')) return;
+  localStorage.removeItem('netpulse-qa');
+  location.reload();
+}
+// ── EXPORT JSON ──
+function exportJSON() {
+  updateAll();
+  const allItems = document.querySelectorAll('.check-item');
+  const items = [];
+  allItems.forEach(item => {
+    const id = item.dataset.id;
+    const label = item.querySelector('strong').textContent;
+    items.push({
+      id,
+      label,
+      status: state.statuses[id] || 'unchecked',
+      gap: state.notes[`${id}-gap`] || '',
+      improvement: state.notes[`${id}-imp`] || '',
+    });
+  });
+  const out = {
+    project: 'NetPulse',
+    exportedAt: new Date().toISOString(),
+    summary: {
+      total: items.length,
+      passed: items.filter(i=>i.status==='pass').length,
+      failed: items.filter(i=>i.status==='fail').length,
+      skipped: items.filter(i=>i.status==='skip').length,
+      unchecked: items.filter(i=>i.status==='unchecked').length,
+    },
+    items,
+    generalNotes: state.notes['generalNotes'] || '',
+    featureRequests: state.notes['featureRequests'] || '',
+  };
+  const blob = new Blob([JSON.stringify(out, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `netpulse-qa-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  showToast('✅ JSON exported successfully');
+}
+// ── EXPORT PDF ──
+function exportPDF() {
+  showToast('🖨 Opening print dialog — choose "Save as PDF"');
+  setTimeout(() => window.print(), 400);
+}
+// ── TOAST ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>

@@ -32,3 +32,22 @@ export function uptimePercent(logs: { status: string }[]): number {
     const up = logs.filter((l) => l.status === "up").length;
     return Math.round((up / logs.length) * 1000) / 10;
 }
+
+export function downloadCsv(filename: string, headers: string[], rows: (string | number | boolean | null | undefined)[][]) {
+    const csvContent = [
+        headers.join(","),
+        ...rows.map(row => row.map(v => {
+            if (v === null || v === undefined) return "";
+            const str = String(v).replace(/"/g, '""');
+            return /[",\n]/.test(str) ? `"${str}"` : str;
+        }).join(","))
+    ].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}

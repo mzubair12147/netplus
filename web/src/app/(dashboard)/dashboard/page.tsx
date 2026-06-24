@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import DashboardClient from "./DashboardClient";
+import OnboardingBanner from "@/components/ui/OnboardingBanner";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "Dashboard" };
@@ -32,11 +33,16 @@ export default async function DashboardPage() {
         }
     }
 
+    const isNewUser = (monitors ?? []).length === 0;
+
     return (
-        <DashboardClient
-            initialMonitors={monitors ?? []}
-            pingMap={pingMap}
-            userId={user!.id}
-        />
+        <>
+            {isNewUser && <OnboardingBanner />}
+            <DashboardClient
+                initialMonitors={monitors ?? []}
+                pingMap={pingMap}
+                userId={user!.id}
+            />
+        </>
     );
 }

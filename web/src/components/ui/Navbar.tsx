@@ -16,6 +16,19 @@ export default function Navbar({ user }: { user: User }) {
         router.refresh();
     }
 
+    // Prefer full_name from user metadata, fall back to email prefix
+    const displayName: string =
+        (user.user_metadata?.full_name as string | undefined)?.trim() ||
+        user.email?.split("@")[0] ||
+        "User";
+
+    const initials = displayName
+        .split(" ")
+        .slice(0, 2)
+        .map((w: string) => w[0])
+        .join("")
+        .toUpperCase();
+
     return (
         <nav className="navbar">
             <div className="container navbar-inner">
@@ -35,9 +48,29 @@ export default function Navbar({ user }: { user: User }) {
                         Status page
                     </Link>
 
-                    <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-                        {user.email}
-                    </span>
+                    {/* User avatar + name */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div
+                            style={{
+                                width: 30,
+                                height: 30,
+                                borderRadius: "50%",
+                                background: "linear-gradient(135deg, var(--accent), #7c3aed)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: "0.7rem",
+                                fontWeight: 700,
+                                color: "#fff",
+                                flexShrink: 0,
+                            }}
+                        >
+                            {initials}
+                        </div>
+                        <span style={{ fontSize: "0.8rem", color: "var(--text-secondary)", maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {displayName}
+                        </span>
+                    </div>
 
                     <button
                         id="signout-btn"

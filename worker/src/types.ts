@@ -21,6 +21,8 @@ export interface Monitor {
     current_status: MonitorStatus;
     consecutive_failures: number;
     created_at: string;
+    monitor_type: "http" | "keyword";
+    keyword: string | null;
 }
 
 export interface UpdateMonitorState {

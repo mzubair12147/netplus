@@ -12,6 +12,8 @@ export async function processMonitor(monitor: Monitor): Promise<void> {
         url: monitor.url,
         expectedStatus: monitor.expected_status,
         timeoutMs: monitor.timeout_ms,
+        monitorType: monitor.monitor_type ?? "http",
+        keyword: monitor.keyword ?? null,
     });
 
     await insertPingLog({

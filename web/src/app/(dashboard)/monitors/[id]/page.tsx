@@ -26,13 +26,13 @@ export default async function MonitorDetailPage({ params }: Props) {
 
     if (!monitor) notFound();
 
-    // Last 100 ping logs
+    // Last 200 ping logs (24hr at 1min = 1440; 200 covers most reasonable intervals)
     const { data: pingLogs } = await supabase
         .from("ping_logs")
         .select("*")
         .eq("monitor_id", id)
         .order("checked_at", { ascending: false })
-        .limit(100);
+        .limit(200);
 
     // 90 days of logs for uptime bar
     const since90 = new Date(Date.now() - 90 * 86400000).toISOString();
@@ -49,7 +49,7 @@ export default async function MonitorDetailPage({ params }: Props) {
         .select("*")
         .eq("monitor_id", id)
         .order("started_at", { ascending: false })
-        .limit(20);
+        .limit(50);
 
     return (
         <MonitorDetailClient
